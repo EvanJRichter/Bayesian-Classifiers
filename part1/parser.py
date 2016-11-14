@@ -8,11 +8,38 @@ TEST_LABEL_PATH = 'digitdata/testlabels'
 TRAINING_IMG_PATH = 'digitdata/trainingimages'
 TRAINING_LABEL_PATH = 'digitdata/traininglabels'
 
+def find_low_high_examples(imgs, labels, posteriori):
+    total = len(imgs)
+    for k in range(10):
+        k_imgs = []
+        k_labels = []
+        k_posteriori = []
+        for i in range(total):
+            if labels[i] == k:
+                k_imgs.append(imgs[i])
+                k_labels.append(labels[i])
+                k_posteriori.append(posteriori[i])
+        find_low_high_example(k_imgs, k_labels, k_posteriori)
+
+
+def find_low_high_example(imgs, labels, posteriori):
+    max_value = max(posteriori)
+    max_index = posteriori.index(max_value)
+
+    min_value = min(posteriori)
+    min_index = posteriori.index(min_value)
+
+    print "------------------------"
+    print imgs[max_index]
+    print "------------------------"
+    print imgs[min_index]
+
 def collect_odds_data(likelyhoods):
-    find_odds(5, 0, likelyhoods)
+    find_odds(5, 9, likelyhoods)
     find_odds(8, 3, likelyhoods)
     find_odds(5, 3, likelyhoods)
     find_odds(9, 4, likelyhoods)
+    return
 
 def find_odds(num1, num2, likelyhoods):
     odds = [[0.0] * 28 for i in range(28)]
@@ -33,6 +60,7 @@ def print_graph(likelyhoods, num):
 def create_matrix(true_labels, empircal_labels):
     matrix = [[0.0] * 10 for i in range(10)]
     class_count = [0.0] * 10
+    class_correct = [0.0] * 10
 
     count = len(true_labels)
     for i in range (count):
@@ -40,11 +68,19 @@ def create_matrix(true_labels, empircal_labels):
         y = empircal_labels[i]
         matrix[x][y] += 1
         class_count[x] += 1
+        if x == y:
+            class_correct[x] += 1
 
     for i in range(10):
+        class_correct[i] = class_correct[i] / class_count[i]
         for j in range(10):
             matrix[i][j] = matrix[i][j] / class_count[i]
             matrix[i][j] = matrix[i][j] * 100
+
+    print "SUCCESS RATE PER CLASS:"
+    print class_correct
+
+    print "CONFUSION MATRIX:"
     print_matrix(matrix)
     return matrix
 
@@ -63,12 +99,6 @@ def analyse(true_labels, empircal_labels, imgs, posteriori):
     for i in range (count):
         if true_labels[i] != empircal_labels[i]:
             wrong += 1
-        # if true_labels[i] == 5:
-        #     string = ''
-        #     for num in posteriori[i]:
-        #         string += format(num, '.2f') + "\t"
-        #     print string
-        #     print ""
 
     print "SUCCESS RATE: "
     print (count - wrong) / count
@@ -91,12 +121,9 @@ def classify_img(img, likelyhoods, priors):
     for i in range (width):
         for j in range (height):
             for k in range (class_count):
-                probability = float(img[i][j] * likelyhoods[k][i][j])
+                probability = float(img[i][j] * likelyhoods[k][i][j] * priors[k] )
                 probability = math.log1p(probability)
                 posteriori[k] += probability
-
-    for i in range(10):
-        posteriori[i] = posteriori[i] * priors[i]
 
     max_value = max(posteriori)
     max_index = posteriori.index(max_value)
@@ -189,5 +216,5 @@ def get_priors(groups):
         priors.append(count)
         total += count
 
-    priors = [x / total for x in priors]
+    # priors = [x / total for x in priors]
     return priors
