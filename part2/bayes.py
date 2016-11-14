@@ -1,4 +1,5 @@
 import math 
+import operator
 
 class Bayes:
 
@@ -8,6 +9,8 @@ class Bayes:
         #print word_pos, word_neg
         #trainedwords = self.get_unique_words(trainfile)
         test_docs = self.get_docs(testfile)
+        self.get_odds(word_neg, word_pos)
+        self.get_top(word_neg, word_pos)
         return self.get_accuracy(test_docs, word_neg, word_pos)
 
 
@@ -35,8 +38,9 @@ class Bayes:
 
         #go through dictionary again, replace value with (value + 1 / len(dict)+total words)
         normalized_words = {}
+        laplacian = 0.05
         for key, value in unique_words.iteritems(): 
-            normalized_words[key] = float(value + 1) / float(len(unique_words)+total_words)
+            normalized_words[key] = float(value + laplacian) / float(len(unique_words)+total_words*laplacian)
         return normalized_words
 
     def get_unique_words(self, path):    
@@ -106,7 +110,28 @@ class Bayes:
         print "classification\given      1       -1"
         print "                   1     ", pos_pos/len(docs), "   ", pos_neg/len(docs)
         print "                  -1     ", neg_pos/len(docs), "   ", neg_neg/len(docs)
+
         return float(correct) / float(len(docs) - 1.0)
+
+    def get_top(self, neg, pos):
+        sorted_neg = sorted(neg.items(), key=lambda tup: tup[1])
+        sorted_pos = sorted(pos.items(), key=lambda tup: tup[1])
+
+        print "Top 10 Negative"
+        print sorted_neg[-10:-1]
+        print "Top 10 Positive"
+        print sorted_pos[-10:-1]
+
+    def get_odds(self, neg, pos):
+        odds = {}
+        for key, pos_value in pos.iteritems(): 
+            if key in neg:
+                odds[key] = (pos_value / neg[key])
+
+        #sorted_odds = sorted(odds.items(), key=operator.itemgetter(1)).reverse()
+
+        sorted_odds = sorted(odds.items(), key=lambda tup: tup[1])
+        print "ODDS : ", sorted_odds[-10:-1]
 
 
 
