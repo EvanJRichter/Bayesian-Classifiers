@@ -10,22 +10,20 @@ TRAINING_LABEL_PATH = 'digitdata/traininglabels'
 
 def collect_odds_data(likelyhoods):
     find_odds(5, 0, likelyhoods)
-    # find_odds(8, 3, likelyhoods)
-    # find_odds(5, 3, likelyhoods)
-    # find_odds(9, 4, likelyhoods)
+    find_odds(8, 3, likelyhoods)
+    find_odds(5, 3, likelyhoods)
+    find_odds(9, 4, likelyhoods)
 
 def find_odds(num1, num2, likelyhoods):
-    width = len(likelyhoods)
-    height = len(likelyhoods[0])
-
-    odds = [[0.0] * height for i in range(width)]
-    for i in range (width):
-        for j in range (height):
-            odds[i][j] = likelyhoods[num1][i][j] / likelyhoods[num2][i][j]
+    odds = [[0.0] * 28 for i in range(28)]
+    for i in range (28):
+        for j in range (28):
+            odds[i][j] = math.log(likelyhoods[num1][i][j] / likelyhoods[num2][i][j])
 
     print_graph(likelyhoods[num1], num1)
     print_graph(likelyhoods[num2], num2)
-    print_graph(odds, "odds")
+    print_graph(odds, "odds of " + str(num1) + " and " + str(num2))
+
 
 def print_graph(likelyhoods, num):
     plt.imshow(likelyhoods, cmap='jet', interpolation='nearest')
@@ -47,7 +45,10 @@ def create_matrix(true_labels, empircal_labels):
         for j in range(10):
             matrix[i][j] = matrix[i][j] / class_count[i]
             matrix[i][j] = matrix[i][j] * 100
+    print_matrix(matrix)
+    return matrix
 
+def print_matrix(matrix):
     for row in matrix:
         string = ''
         print ""
@@ -55,7 +56,6 @@ def create_matrix(true_labels, empircal_labels):
             string += format(element, '.2f') + "\t"
         print string
 
-    return matrix
 def analyse(true_labels, empircal_labels, imgs, posteriori):
     count = len(true_labels)
     wrong = 0.0
@@ -63,12 +63,12 @@ def analyse(true_labels, empircal_labels, imgs, posteriori):
     for i in range (count):
         if true_labels[i] != empircal_labels[i]:
             wrong += 1
-        if true_labels[i] == 5:
-            string = ''
-            for num in posteriori[i]:
-                string += format(num, '.2f') + "\t"
-            print string
-            print ""
+        # if true_labels[i] == 5:
+        #     string = ''
+        #     for num in posteriori[i]:
+        #         string += format(num, '.2f') + "\t"
+        #     print string
+        #     print ""
 
     print "SUCCESS RATE: "
     print (count - wrong) / count
